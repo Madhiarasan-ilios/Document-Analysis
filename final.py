@@ -27,23 +27,16 @@ gemini_model = GenerativeModel("gemini-2.5-pro")
 # --- Google Cloud Vision Setup ---
 vision_client = ImageAnnotatorClient(client_options={"api_key": API_KEY})
 
-# --- AWS & LangChain Setup ---
-AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
-AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 AWS_REGION = "ap-south-1"
 
 translate_client = boto3.client(
     "translate",
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY
+    region_name=AWS_REGION
 )
 
 chat_model = ChatBedrock(
     model_id="anthropic.claude-3-haiku-20240307-v1:0",
     temperature=0.0,
-    aws_access_key=AWS_ACCESS_KEY,
-    aws_secret_key=AWS_SECRET_KEY,
     region_name=AWS_REGION
 )
 
