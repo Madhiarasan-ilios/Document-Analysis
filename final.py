@@ -9,9 +9,10 @@ from google.cloud.vision_v1 import ImageAnnotatorClient
 from google.cloud.vision_v1.types import Image as VisionImage
 from vertexai.generative_models import GenerativeModel, Part
 from dotenv import load_dotenv
-
-load_dotenv()
 import fitz  # PyMuPDF
+
+# --- Load Environment Variables ---
+load_dotenv()
 
 # --- Environment Setup ---
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "iliosdigital-ai-poc-0127591fe3ba.json"
@@ -27,11 +28,25 @@ gemini_model = GenerativeModel("gemini-2.5-pro")
 vision_client = ImageAnnotatorClient(client_options={"api_key": API_KEY})
 
 # --- AWS & LangChain Setup ---
-translate_client = boto3.client("translate", region_name="ap-south-1")
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+AWS_REGION = "ap-south-1"
+
+translate_client = boto3.client(
+    "translate",
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY
+)
+
 chat_model = ChatBedrock(
     model_id="anthropic.claude-3-haiku-20240307-v1:0",
-    temperature=0.0
+    temperature=0.0,
+    aws_access_key=AWS_ACCESS_KEY,
+    aws_secret_key=AWS_SECRET_KEY,
+    region_name=AWS_REGION
 )
+
 translation_prompt_template = PromptTemplate(
     input_variables=["text_to_translate"],
     template="""
@@ -104,7 +119,11 @@ def extract_and_translate(image_name, image_bytes):
 st.set_page_config(page_title="Tamil → English OCR & Translator", layout="wide")
 st.title("📖 Tamil → English OCR & Translator")
 
-uploaded_files = st.file_uploader("Upload PDF or Image(s)", type=["pdf", "png", "jpg", "jpeg"], accept_multiple_files=True)
+uploaded_files = st.file_uploader(
+    "Upload PDF or Image(s)", 
+    type=["pdf", "png", "jpg", "jpeg"], 
+    accept_multiple_files=True
+)
 
 if uploaded_files:
     all_translations = []
